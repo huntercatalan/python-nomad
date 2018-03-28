@@ -1,9 +1,15 @@
 from distutils.core import setup
 
+try:
+    requirements = [ x.strip() for x
+        in open('requirements.txt').readlines() if not x.startswith('#')]
+except:
+    requirements = []
+
 setup(
-    name='python-nomad',
+    name='pynomad',
     version='0.7.0',
-    install_requires=['requests'],
+    install_requires=requirements,
     packages=['nomad', 'nomad.api'],
     url='http://github.com/jrxfive/python-nomad',
     license='MIT',
