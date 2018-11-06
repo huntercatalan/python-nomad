@@ -1,75 +1,83 @@
-import pytest
 import tests.common as common
-import nomad
-import json
-from nomad.api import exceptions
-from mock import patch, MagicMock
 
-
-
-@pytest.fixture
-def nomad_setup():
-    n = nomad.Nomad(host=common.IP, port=common.NOMAD_PORT, verify=False, token=common.NOMAD_TOKEN)
-    return n
+import pytest
+import responses
 
 
 # integration tests was mocked. If you have an enterprise nomad please uncomenet ##### ENTERPRISE TEST #####
+@responses.activate
+def test_get_namespaces(nomad_setup):
+    responses.add(
+        responses.GET,
+        "http://{ip}:{port}/v1/namespaces".format(ip=common.IP, port=common.NOMAD_PORT),
+        status=200,
+        json=[
+                {
+                    "CreateIndex": 31,
+                    "Description": "Production API Servers",
+                    "ModifyIndex": 31,
+                    "Name": "api-prod"
+                },
+                {
+                    "CreateIndex": 5,
+                    "Description": "Default shared namespace",
+                    "ModifyIndex": 5,
+                    "Name": "default"
+                }
+            ]
+    )
 
-@patch('nomad.api.namespaces.Namespaces._get')
-def test_get_namespaces(mock_get, nomad_setup):
-    mock_get.return_value = [
-                                {
-                                    "CreateIndex": 31,
-                                    "Description": "Production API Servers",
-                                    "ModifyIndex": 31,
-                                    "Name": "api-prod"
-                                },
-                                {
-                                    "CreateIndex": 5,
-                                    "Description": "Default shared namespace",
-                                    "ModifyIndex": 5,
-                                    "Name": "default"
-                                }
-                            ]
     assert isinstance(nomad_setup.namespaces.get_namespaces(), list) == True
 
-@patch('nomad.api.namespaces.Namespaces._get')
-def test_namespaces_iter_(mock_get, nomad_setup):
-    mock_get.return_value = [
-                                {
-                                    "CreateIndex": 31,
-                                    "Description": "Production API Servers",
-                                    "ModifyIndex": 31,
-                                    "Name": "api-prod"
-                                },
-                                {
-                                    "CreateIndex": 5,
-                                    "Description": "Default shared namespace",
-                                    "ModifyIndex": 5,
-                                    "Name": "default"
-                                }
-                            ]
+
+@responses.activate
+def test_namespaces_iter(nomad_setup):
+    responses.add(
+        responses.GET,
+        "http://{ip}:{port}/v1/namespaces".format(ip=common.IP, port=common.NOMAD_PORT),
+        status=200,
+        json=[
+                {
+                    "CreateIndex": 31,
+                    "Description": "Production API Servers",
+                    "ModifyIndex": 31,
+                    "Name": "api-prod"
+                },
+                {
+                    "CreateIndex": 5,
+                    "Description": "Default shared namespace",
+                    "ModifyIndex": 5,
+                    "Name": "default"
+                }
+            ]
+    )
+
     assert "api-prod" in nomad_setup.namespaces
 
-@patch('nomad.api.namespaces.Namespaces._get')
-def test_namespaces_len_(mock_get, nomad_setup):
-    mock_get.return_value = [
-                                {
-                                    "CreateIndex": 31,
-                                    "Description": "Production API Servers",
-                                    "ModifyIndex": 31,
-                                    "Name": "api-prod"
-                                },
-                                {
-                                    "CreateIndex": 5,
-                                    "Description": "Default shared namespace",
-                                    "ModifyIndex": 5,
-                                    "Name": "default"
-                                }
-                            ]
-    assert 2 == nomad_setup.namespaces.__len__()
 
+@responses.activate
+def test_namespaces_len(nomad_setup):
+    responses.add(
+        responses.GET,
+        "http://{ip}:{port}/v1/namespaces".format(ip=common.IP, port=common.NOMAD_PORT),
+        status=200,
+        json=[
+                {
+                    "CreateIndex": 31,
+                    "Description": "Production API Servers",
+                    "ModifyIndex": 31,
+                    "Name": "api-prod"
+                },
+                {
+                    "CreateIndex": 5,
+                    "Description": "Default shared namespace",
+                    "ModifyIndex": 5,
+                    "Name": "default"
+                }
+            ]
+    )
 
+    assert 2 == len(nomad_setup.namespaces)
 
 
 ###### ENTERPRISE TEST ###########

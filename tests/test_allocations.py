@@ -1,16 +1,16 @@
+import json
 import pytest
-import tests.common as common
-import nomad
 
 
-@pytest.fixture
-def nomad_setup():
-    n = nomad.Nomad(host=common.IP, port=common.NOMAD_PORT, verify=False, token=common.NOMAD_TOKEN)
-    return n
+def test_register_job(nomad_setup):
+
+    with open("example.json") as fh:
+        job = json.loads(fh.read())
+        nomad_setup.job.register_job("example", job)
+        assert "example" in nomad_setup.job
+
 
 # integration tests requires nomad Vagrant VM or Binary running
-
-
 def test_get_allocations(nomad_setup):
     assert isinstance(nomad_setup.allocations.get_allocations(), list) == True
 

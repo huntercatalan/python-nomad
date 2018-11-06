@@ -3,7 +3,7 @@
 
 Branch | Status | Coverage |
 ---| ---| ---
-develop | [![Build Status](https://travis-ci.org/jrxFive/python-nomad.svg?branch=develop)](https://travis-ci.org/jrxFive/python-nomad) | [![codecov](https://codecov.io/gh/jrxFive/python-nomad/branch/develop/graph/badge.svg)](https://codecov.io/gh/jrxFive/python-nomad)
+master | [![Build Status](https://travis-ci.org/jrxFive/python-nomad.svg?branch=master)](https://travis-ci.org/jrxFive/python-nomad) | [![codecov](https://codecov.io/gh/jrxFive/python-nomad/branch/master/graph/badge.svg)](https://codecov.io/gh/jrxFive/python-nomad)
 
 
 ## Installation
@@ -28,14 +28,14 @@ n = nomad.Nomad(host="172.16.100.10", secure=True, timeout=5, verify=True)
 # For HTTPS Nomad instances with self-signed SSL certificates and no validate the cert
 n = nomad.Nomad(host="172.16.100.10", secure=True, timeout=5, verify=False)
 
-# For HTTPS Nomad instances with self-signed SSL certificates that mus validate with cert
+# For HTTPS Nomad instances with self-signed SSL certificates that must validate with cert
 n = nomad.Nomad(host="172.16.100.10", secure=True, timeout=5, verify=True, cert="/path/to/certfile") # See http://docs.python-requests.org/en/master/user/advanced/#ssl-cert-verification
 
 # For HTTPS Nomad instances with cert file and key
-n = nomad.Nomad(host="https://172.16.100.10", secure=True, timeout=5, verify=True, cert=("/path/to/certfile", "/path/to/key") # See http://docs.python-requests.org/en/master/user/advanced/#ssl-cert-verification
+n = nomad.Nomad(host="https://172.16.100.10", secure=True, timeout=5, verify=True, cert=("/path/to/certfile", "/path/to/key")) # See http://docs.python-requests.org/en/master/user/advanced/#ssl-cert-verification
 
 # For HTTPS Nomad instances with namespace and acl token
-n = nomad.Nomad(host="172.16.100.10", secure=True timeout=5, verify=False, namespace='Namespace-example',token='3f4a0fcd-7c42-773c-25db-2d31ba0c05fe')
+n = nomad.Nomad(host="172.16.100.10", secure=True, timeout=5, verify=False, namespace='Namespace-example',token='3f4a0fcd-7c42-773c-25db-2d31ba0c05fe')
 
 "example" in n.jobs
 
@@ -101,6 +101,12 @@ vagrant up --provider virtualbox
 py.test --cov=nomad --cov-report=term-missing --runxfail tests/
 ```
 
+## Testing with nomad binary
+```
+./nomad agent -dev -node pynomad1 --acl-enabled
+NOMAD_IP=127.0.0.1 NOMAD_VERSION=<SEMNATIC_VERSION> py.test --cov=nomad --cov-report=term-missing --runxfail tests/
+```
+
 - Examples
     - [x] Acl [:link:](docs/api/acl.md)
     - [x] Agent [:link:](docs/api/agent.md)
@@ -122,8 +128,3 @@ py.test --cov=nomad --cov-report=term-missing --runxfail tests/
     - [x] Status [:link:](docs/api/status.md)
     - [x] System [:link:](docs/api/system.md)
     - [x] Validate [:link:](docs/api/validate.md)
-
-## TODO
-- [ ] functional tests
-- [ ] Inherit Base class, remove duplication and override parent dunders
-- [ ] readthedocs

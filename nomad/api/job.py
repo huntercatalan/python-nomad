@@ -1,7 +1,9 @@
 import nomad.api.exceptions
 
+from nomad.api.base import Requester
 
-class Job(object):
+
+class Job(Requester):
 
     """
     The job endpoint is used for CRUD on a single job.
@@ -11,8 +13,8 @@ class Job(object):
     """
     ENDPOINT = "job"
 
-    def __init__(self, requester):
-        self._requester = requester
+    def __init__(self, **kwargs):
+        super(Job, self).__init__(**kwargs)
 
     def __str__(self):
         return "{0}".format(self.__dict__)
@@ -27,7 +29,7 @@ class Job(object):
     def __contains__(self, item):
 
         try:
-            j = self._get(item)
+            j = self.get_job(item)
             return True
         except nomad.api.exceptions.URLNotFoundNomadException:
             return False
@@ -35,7 +37,7 @@ class Job(object):
     def __getitem__(self, item):
 
         try:
-            j = self._get(item)
+            j = self.get_job(item)
 
             if j["ID"] == item:
                 return j
@@ -45,12 +47,6 @@ class Job(object):
                 raise KeyError
         except nomad.api.exceptions.URLNotFoundNomadException:
             raise KeyError
-
-    def _get(self, *args):
-        url = self._requester._endpointBuilder(Job.ENDPOINT, *args)
-        job = self._requester.get(url)
-
-        return job.json()
 
     def get_job(self, id):
         """ Query a single job for its specification and status.
@@ -64,7 +60,7 @@ class Job(object):
               - nomad.api.exceptions.BaseNomadException
               - nomad.api.exceptions.URLNotFoundNomadException
         """
-        return self._get(id)
+        return self.request(id, method="get").json()
 
     def get_versions(self, id):
         """ This endpoint reads information about all versions of a job.
@@ -78,7 +74,7 @@ class Job(object):
               - nomad.api.exceptions.BaseNomadException
               - nomad.api.exceptions.URLNotFoundNomadException
         """
-        return self._get(id, "versions")
+        return self.request(id, "versions", method="get").json()
 
     def get_allocations(self, id):
         """ Query the allocations belonging to a single job.
@@ -92,7 +88,7 @@ class Job(object):
               - nomad.api.exceptions.BaseNomadException
               - nomad.api.exceptions.URLNotFoundNomadException
         """
-        return self._get(id, "allocations")
+        return self.request(id, "allocations", method="get").json()
 
     def get_evaluations(self, id):
         """ Query the evaluations belonging to a single job.
@@ -106,7 +102,7 @@ class Job(object):
               - nomad.api.exceptions.BaseNomadException
               - nomad.api.exceptions.URLNotFoundNomadException
         """
-        return self._get(id, "evaluations")
+        return self.request(id, "evaluations", method="get").json()
 
     def get_deployments(self, id):
         """ This endpoint lists a single job's deployments
@@ -120,7 +116,7 @@ class Job(object):
               - nomad.api.exceptions.BaseNomadException
               - nomad.api.exceptions.URLNotFoundNomadException
         """
-        return self._get(id, "deployments")
+        return self.request(id, "deployments", method="get").json()
 
     def get_deployment(self, id):
         """ This endpoint returns a single job's most recent deployment.
@@ -134,7 +130,7 @@ class Job(object):
               - nomad.api.exceptions.BaseNomadException
               - nomad.api.exceptions.URLNotFoundNomadException
         """
-        return self._get(id, "deployment")
+        return self.request(id, "deployment", method="get").json()
 
     def get_summary(self, id):
         """ Query the summary of a job.
@@ -148,17 +144,7 @@ class Job(object):
               - nomad.api.exceptions.BaseNomadException
               - nomad.api.exceptions.URLNotFoundNomadException
         """
-        return self._get(id, "summary")
-
-    def _post(self, *args, **kwargs):
-        url = self._requester._endpointBuilder(Job.ENDPOINT, *args)
-
-        if kwargs:
-            response = self._requester.post(url, json=kwargs.get("json_dict", None), params=kwargs.get("params", None))
-        else:
-            response = self._requester.post(url)
-
-        return response.json()
+        return self.request(id, "summary", method="get").json()
 
     def register_job(self, id, job):
         """ Registers a new job or updates an existing job
@@ -172,7 +158,7 @@ class Job(object):
               - nomad.api.exceptions.BaseNomadException
               - nomad.api.exceptions.URLNotFoundNomadException
         """
-        return self._post(id, json_dict=job)
+        return self.request(id, json=job, method="post").json()
 
     def evaluate_job(self, id):
         """ Creates a new evaluation for the given job.
@@ -187,9 +173,9 @@ class Job(object):
               - nomad.api.exceptions.BaseNomadException
               - nomad.api.exceptions.URLNotFoundNomadException
         """
-        return self._post(id, "evaluate")
+        return self.request(id, "evaluate", method="post").json()
 
-    def plan_job(self, id, job, diff=False):
+    def plan_job(self, id, job, diff=False, policy_override=False):
         """ Invoke a dry-run of the scheduler for the job.
 
            https://www.nomadproject.io/docs/http/job.html
@@ -197,13 +183,18 @@ class Job(object):
             arguments:
               - id
               - job, dict
-              - diff, optional boolean
+              - diff, boolean
+              - policy_override, boolean
             returns: dict
             raises:
               - nomad.api.exceptions.BaseNomadException
               - nomad.api.exceptions.URLNotFoundNomadException
         """
-        return self._post(id, "plan", json_dict=job, params={"diff": diff})
+        json_dict = {}
+        json_dict.update(job)
+        json_dict.setdefault('Diff', diff)
+        json_dict.setdefault('PolicyOverride', policy_override)
+        return self.request(id, "plan", json=json_dict, method="post").json()
 
     def periodic_job(self, id):
         """ Forces a new instance of the periodic job. A new instance will be
@@ -220,7 +211,7 @@ class Job(object):
               - nomad.api.exceptions.BaseNomadException
               - nomad.api.exceptions.URLNotFoundNomadException
         """
-        return self._post(id, "periodic", "force")
+        return self.request(id, "periodic", "force", method="post").json()
     
     def dispatch_job(self, id, payload=None, meta=None):
         """ Dispatches a new instance of a parameterized job.
@@ -237,7 +228,7 @@ class Job(object):
               - nomad.api.exceptions.URLNotFoundNomadException
         """
         dispatch_json = {"Meta": meta, "Payload": payload}
-        return self._post(id, "dispatch", json_dict=dispatch_json)
+        return self.request(id, "dispatch", json=dispatch_json, method="post").json()
 
     def revert_job(self, id, version, enforce_prior_version=None):
         """ This endpoint reverts the job to an older version.
@@ -259,7 +250,7 @@ class Job(object):
         revert_json = {"JobID": id,
                        "JobVersion": version,
                        "EnforcePriorVersion": enforce_prior_version}
-        return self._post(id, "revert", json_dict=revert_json)
+        return self.request(id, "revert", json=revert_json, method="post").json()
 
     def stable_job(self, id, version, stable):
         """ This endpoint sets the job's stability.
@@ -278,24 +269,29 @@ class Job(object):
         revert_json = {"JobID": id,
                        "JobVersion": version,
                        "Stable": stable}
-        return self._post(id, "stable", json_dict=revert_json)
+        return self.request(id, "stable", json=revert_json, method="post").json()
 
-    def _delete(self, *args):
-        url = self._requester._endpointBuilder(Job.ENDPOINT, *args)
-        job = self._requester.delete(url)
-
-        return job.json()
-
-    def deregister_job(self, id):
+    def deregister_job(self, id, purge=None):
         """ Deregisters a job, and stops all allocations part of it.
 
            https://www.nomadproject.io/docs/http/job.html
 
             arguments:
               - id
+              - purge (bool), optionally specifies whether the job should be
+                stopped and purged immediately (`purge=True`) or deferred to the
+                Nomad garbage collector (`purge=False`).
+
             returns: dict
             raises:
               - nomad.api.exceptions.BaseNomadException
               - nomad.api.exceptions.URLNotFoundNomadException
+              - nomad.api.exceptions.InvalidParameters
         """
-        return self._delete(id)
+        params = None
+        if purge is not None:
+            if not isinstance(purge, bool):
+                raise nomad.api.exceptions.InvalidParameters("purge is invalid "
+                        "(expected type %s but got %s)"%(type(bool()), type(purge)))
+            params = {"purge": purge}
+        return self.request(id, params=params, method="delete").json()
