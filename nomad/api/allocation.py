@@ -55,3 +55,20 @@ class Allocation(Requester):
               - nomad.api.exceptions.URLNotFoundNomadException
         """
         return self.request(id, method="get").json()
+
+    def get_allocation_stats(self, id):
+        """ Query a specific allocation resource usage.
+
+           https://www.nomadproject.io/docs/http/alloc.html
+
+            returns: dict
+            raises:
+              - nomad.api.exceptions.BaseNomadException
+              - nomad.api.exceptions.URLNotFoundNomadException
+        """
+        endpoint = self._endpoint_builder('client', self.ENDPOINT, id, 'stats')
+        return self._request(
+            endpoint=endpoint,
+            method="get",
+        ).json()
+

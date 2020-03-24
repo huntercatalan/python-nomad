@@ -8,7 +8,7 @@ except:
 
 setup(
     name='pynomad',
-    version='1.0.1',
+    version='1.0.2',
     install_requires=requirements,
     packages=['nomad', 'nomad.api'],
     url='http://github.com/jrxfive/python-nomad',
